@@ -1,19 +1,26 @@
+﻿@"
 # Order Support Agent
 
-Proyecto de búsqueda semántica para políticas de soporte de pedidos.
+Agente que ayuda al equipo de soporte a encontrar rapidamente que politica aplica segun la consulta de un cliente.
+
+## Que hace
+
+Le escribis una pregunta (por ejemplo: el cliente quiere devolver un producto) y el agente busca automaticamente en las politicas del negocio cuales son las mas relevantes para responder.
 
 ## Estado actual
 
-- Entorno creado con Python 3.12.
-- Sentence Transformers funcionando.
-- Modelo `all-MiniLM-L6-v2` carga correctamente.
-- Embeddings generados correctamente.
-- ChromaDB crea la base local.
-- Pendiente: resolver crash de ChromaDB al guardar documentos en Windows.
+* Funciona de punta a punta.
+* Lee las politicas desde un archivo de texto.
+* Encuentra las politicas mas relevantes por significado, no por palabras exactas.
+* Guarda el indice localmente para no reprocesar todo cada vez.
 
-## Error actual
+## Como usarlo
 
-Al ejecutar:
+Primero, cargar las politicas (solo la primera vez o cuando cambien):
 
-```bash
-python .\src\ingest.py
+python src/ingest.py
+
+Despues, consultar el agente:
+
+python src/agent.py
+"@ | Set-Content README.md -Encoding UTF8

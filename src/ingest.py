@@ -1,18 +1,21 @@
-from pathlib import Path
+﻿from pathlib import Path
 import traceback
-
-import chromadb
+import json
+import numpy as np
+import faiss
 from sentence_transformers import SentenceTransformer
 
-
 try:
-    print("1 - Inicio ingest", flush=True)
+    print("1 - Inicio ingest")
 
     BASE_DIR = Path(__file__).resolve().parents[1]
     DATA_FILE = BASE_DIR / "data" / "policies.txt"
-    CHROMA_PATH = str(BASE_DIR / "chroma_db")
+    INDEX_PATH = str(BASE_DIR / "faiss_index" / "index.faiss")
+    TEXTS_PATH = str(BASE_DIR / "faiss_index" / "texts.json")
 
-    print("2 - Archivo:", DATA_FILE, flush=True)
+    Path(INDEX_PATH).parent.mkdir(exist_ok=True)
+
+    print("2 - Archivo:", DATA_FILE)
 
     texts = [
         line.strip()
@@ -20,30 +23,26 @@ try:
         if line.strip()
     ]
 
-    print("3 - Textos encontrados:", len(texts), flush=True)
-
-    print("4 - Cargando modelo...", flush=True)
+    print("3 - Textos encontrados:", len(texts))
+    print("4 - Cargando modelo...")
     model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    print("5 - Generando embeddings...", flush=True)
-    embeddings = model.encode(texts).tolist()
+    print("5 - Generando embeddings...")
+    embeddings = model.encode(texts)
+    embeddings = np.array(embeddings).astype("float32")
 
-    print("6 - Conectando a ChromaDB...", flush=True)
-    client = chromadb.PersistentClient(path=CHROMA_PATH)
-    collection = client.get_or_create_collection(name="order_policies")
+    print("6 - Creando indice FAISS...")
+    index = faiss.IndexFlatL2(embeddings.shape[1])
+    index.add(embeddings)
 
-    ids = [f"doc_{i}" for i in range(len(texts))]
+    print("7 - Guardando en disco...")
+    faiss.write_index(index, INDEX_PATH)
+    with open(TEXTS_PATH, "w", encoding="utf-8") as f:
+        json.dump(texts, f, ensure_ascii=False)
 
-    print("7 - Guardando documentos...", flush=True)
-    collection.add(
-        ids=ids,
-        documents=texts,
-        embeddings=embeddings,
-    )
-
-    print("8 - Documentos cargados:", len(texts), flush=True)
-    print("9 - Total en ChromaDB:", collection.count(), flush=True)
+    print("8 - Documentos guardados:", len(texts))
+    print("9 - Total en indice:", index.ntotal)
 
 except Exception:
-    print("ERROR:", flush=True)
+    print("ERROR:")
     traceback.print_exc()
