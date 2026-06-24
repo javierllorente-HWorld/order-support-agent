@@ -1,5 +1,4 @@
-﻿@"
-# Order Support Agent
+﻿# Order Support Agent
 
 Agente que ayuda al equipo de soporte a encontrar rapidamente que politica aplica segun la consulta de un cliente.
 
